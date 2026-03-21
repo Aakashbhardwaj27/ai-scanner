@@ -1,0 +1,23 @@
+{
+  "name": "ai-scanner",
+  "version": "1.0.0",
+  "description": "CLI tool to scan codebases for LLM SDK usage, AI frameworks, and exposed API tokens",
+  "main": "lib/index.js",
+  "bin": {
+    "ai-scanner": "./bin/cli.js"
+  },
+  "keywords": [
+    "llm",
+    "ai",
+    "security",
+    "scanner",
+    "token",
+    "api-key",
+    "openai",
+    "langchain",
+    "anthropic"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
