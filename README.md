@@ -19,6 +19,8 @@ A powerful CLI tool that scans your codebase to detect **LLM SDK usage**, **AI f
 
 Zero dependencies. Works with Node.js 18+.
 
+<img src="./docs/banner.jpg"  />
+
 ## Features
 
 - **LLM SDK Detection** — OpenAI, Anthropic, Google Gemini, Cohere, Mistral, Groq, Replicate, Together AI, AWS Bedrock, Azure OpenAI, Ollama, LiteLLM, DeepSeek, and more
