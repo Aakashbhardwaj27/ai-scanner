@@ -13,9 +13,18 @@
     "LICENSE"
   ],
   "keywords": [
-    "llm", "ai", "security", "scanner", "token",
-    "api-key", "openai", "langchain", "anthropic",
-    "cli", "devtools", "secret-detection"
+    "llm",
+    "ai",
+    "security",
+    "scanner",
+    "token",
+    "api-key",
+    "openai",
+    "langchain",
+    "anthropic",
+    "cli",
+    "devtools",
+    "secret-detection"
   ],
   "author": "Aakash Bhardwaj",
   "license": "MIT",
