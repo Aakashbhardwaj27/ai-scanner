@@ -132,6 +132,17 @@ LangChain, LangGraph, LangSmith, LlamaIndex, Haystack, AutoGen, CrewAI, Semantic
 ### Token Patterns (20+)
 OpenAI keys, Anthropic keys, Google AI keys, HuggingFace tokens, Cohere keys, Replicate tokens, Groq keys, Mistral keys, AWS access keys, LangSmith keys, Fireworks keys, W&B keys, generic hardcoded API key assignments, Bearer tokens, Authorization headers
 
+## Examples
+ 
+Scan any public GitHub repo:
+ 
+```bash
+git clone --depth 1 https://github.com/user/repo /tmp/repo
+npx ai-scanner /tmp/repo
+```
+ 
+Or use the helper scripts in [`examples/`](examples/) — GitHub repo scanner, batch scanning, pre-commit hooks, GitHub Actions workflow, and using ai-scanner as a Node.js library.
+ 
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

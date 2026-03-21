@@ -157,10 +157,14 @@
 
     .theme-btn svg { width: 18px; height: 18px; }
 
-    .icon-sun, .icon-moon, .icon-system { display: none; }
-    [data-theme="light"] .icon-sun { display: block; }
-    [data-theme="dark"] .icon-moon { display: block; }
-    :not([data-theme]) .icon-system { display: block; }
+    .theme-btn .icon-sun,
+    .theme-btn .icon-moon,
+    .theme-btn .icon-system { display: none; }
+
+    /* Show correct icon based on data-mode attr on the button */
+    .theme-btn[data-mode="light"] .icon-sun { display: block; }
+    .theme-btn[data-mode="dark"] .icon-moon { display: block; }
+    .theme-btn[data-mode="system"] .icon-system { display: block; }
 
     /* ── Layout ── */
     .layout {
@@ -379,7 +383,6 @@
     }
   </style>
   <script>
-    // Apply saved theme or system preference before paint
     (function() {
       var saved = localStorage.getItem('theme');
       if (saved === 'light' || saved === 'dark') {
@@ -410,17 +413,16 @@
       <a href="#getting-started">Getting Started</a>
       <a href="#usage">Usage</a>
       <a href="#detection">Detection</a>
+      <a href="#examples">Examples</a>
       <a href="#ci-cd">CI/CD</a>
       <a href="#about">About</a>
     </nav>
     <div class="header-right">
-      <button class="theme-btn" onclick="cycleTheme()" title="Toggle theme" aria-label="Toggle theme">
-        <!-- Sun icon (shown in light mode) -->
+      <button class="theme-btn" id="themeBtn" data-mode="system" onclick="cycleTheme()" title="Toggle theme" aria-label="Toggle theme">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        <!-- Moon icon (shown in dark mode) -->
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-        <!-- System icon (shown when no override) -->
-           </button>
+        <svg class="icon-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </button>
       <a href="https://github.com/Aakashbhardwaj27/ai-scanner" class="gh-link">
         <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         GitHub
@@ -455,6 +457,12 @@
       <a href="#severity-levels">Severity Levels</a>
     </div>
     <div class="sidebar-section">
+      <div class="sidebar-label">Examples</div>
+      <a href="#scan-github-repo">Scan a GitHub Repo</a>
+      <a href="#batch-scan">Batch Scan Repos</a>
+      <a href="#use-as-library">Use as a Library</a>
+    </div>
+    <div class="sidebar-section">
       <div class="sidebar-label">Integration</div>
       <a href="#ci-cd">CI/CD</a>
       <a href="#github-actions">GitHub Actions</a>
@@ -482,7 +490,7 @@
       </div>
     </div>
 
-    Zero dependencies. Works with Node.js 18+. Detects 16+ LLM SDKs, 20+ AI frameworks, and 20+ API token patterns across Python, JavaScript, TypeScript, Go, Java, and more.
+    <p>Zero dependencies. Works with Node.js 18+. Detects 16+ LLM SDKs, 20+ AI frameworks, and 20+ API token patterns across Python, JavaScript, TypeScript, Go, Java, and more.</p>
 
     <div class="grid">
       <div class="card"><h3>🚨 Token Detection</h3><p>Catches hardcoded API keys for OpenAI, Anthropic, Google, AWS, HuggingFace, Groq, and 15+ other providers.</p></div>
@@ -595,6 +603,47 @@
 
     <hr>
 
+    <!-- Examples -->
+    <h2 id="examples">Examples</h2>
+
+    <h3 id="scan-github-repo">Scan a GitHub Repo</h3>
+    <p>Clone any public repo and scan it in one command:</p>
+    <pre><code><span class="cmd">git clone --depth 1 https://github.com/user/repo /tmp/repo</span>
+<span class="cmd">npx ai-scanner /tmp/repo</span>
+<span class="cmd">rm -rf /tmp/repo</span></code></pre>
+
+    <p>Or use the included helper scripts:</p>
+    <pre><code><span class="comment"># Shell — clones, scans, cleans up automatically</span>
+<span class="cmd">./examples/scan-github-repo.sh https://github.com/langchain-ai/langchainjs</span>
+
+<span class="comment"># Node.js — uses ai-scanner as a library, saves JSON report</span>
+<span class="cmd">node examples/scan-github-repo.js https://github.com/langchain-ai/langchainjs</span></code></pre>
+
+    <h3 id="batch-scan">Batch Scan Multiple Repos</h3>
+    <p>Audit multiple repos at once and get a summary table:</p>
+    <pre><code><span class="comment"># Edit the REPOS array in the script, then run:</span>
+<span class="cmd">node examples/scan-multiple-repos.js</span>
+
+<span class="comment"># Output:</span>
+<span class="comment">#   🚨 my-api          12 findings   3 critical  2 SDKs  1 frameworks</span>
+<span class="comment">#   📦 my-app           8 findings   0 critical  3 SDKs  2 frameworks</span>
+<span class="comment">#   ✅ my-lib           0 findings   0 critical  0 SDKs  0 frameworks</span></code></pre>
+
+    <h3 id="use-as-library">Use as a Library</h3>
+    <p>Import the scanner in your own Node.js code:</p>
+    <pre><code><span class="keyword">const</span> { Scanner } = <span class="func">require</span>(<span class="string">'ai-scanner'</span>);
+
+<span class="keyword">const</span> scanner = <span class="keyword">new</span> <span class="func">Scanner</span>({ rootDir: <span class="string">'./my-project'</span> });
+<span class="keyword">const</span> result = scanner.<span class="func">scan</span>();
+
+<span class="comment">// Access structured results</span>
+console.<span class="func">log</span>(result.stats.criticalFindings);
+console.<span class="func">log</span>(result.findings.<span class="func">filter</span>(f => f.type === <span class="string">'token'</span>));</code></pre>
+
+    <div class="callout callout-info"><div class="callout-title">More examples</div><p>See the <a href="https://github.com/Aakashbhardwaj27/ai-scanner/tree/main/examples">examples/</a> directory for pre-commit hooks, GitHub Actions workflows, and more.</p></div>
+
+    <hr>
+
     <h2 id="ci-cd">CI/CD Integration</h2>
 
     <h3 id="github-actions">GitHub Actions</h3>
@@ -643,6 +692,7 @@
     <a href="#smart-filtering">Smart Filtering</a>
     <a href="#detection">Detection Coverage</a>
     <a href="#severity-levels">Severity Levels</a>
+    <a href="#examples">Examples</a>
     <a href="#ci-cd">CI/CD Integration</a>
     <a href="#about">About</a>
   </aside>
@@ -654,34 +704,40 @@
 </footer>
 
 <script>
-// Theme cycling: system → light → dark → system
+(function() {
+  var btn = document.getElementById('themeBtn');
+  var saved = localStorage.getItem('theme');
+
+  // Set initial button icon state
+  if (saved === 'light') btn.setAttribute('data-mode', 'light');
+  else if (saved === 'dark') btn.setAttribute('data-mode', 'dark');
+  else btn.setAttribute('data-mode', 'system');
+})();
+
 function cycleTheme() {
-  var current = localStorage.getItem('theme');
+  var btn = document.getElementById('themeBtn');
+  var current = btn.getAttribute('data-mode');
   var next;
-  if (!current || current === 'system') {
-    next = 'light';
-  } else if (current === 'light') {
-    next = 'dark';
-  } else {
-    next = 'system';
-  }
+
+  if (current === 'system') next = 'light';
+  else if (current === 'light') next = 'dark';
+  else next = 'system';
+
+  btn.setAttribute('data-mode', next);
 
   if (next === 'system') {
     localStorage.removeItem('theme');
     var sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', sys);
-    // Remove then re-set to trigger icon swap
-    setTimeout(function() { document.documentElement.removeAttribute('data-theme'); document.documentElement.setAttribute('data-theme', sys); }, 0);
-    localStorage.setItem('theme', 'system');
   } else {
     localStorage.setItem('theme', next);
     document.documentElement.setAttribute('data-theme', next);
   }
 }
 
-// Listen for system theme changes
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-  if (!localStorage.getItem('theme') || localStorage.getItem('theme') === 'system') {
+  var saved = localStorage.getItem('theme');
+  if (!saved) {
     document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
   }
 });
