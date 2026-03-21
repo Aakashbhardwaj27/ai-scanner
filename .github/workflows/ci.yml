@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [18, 20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run scanner on itself (smoke test)
+        run: node bin/cli.js . --json
+
+      - name: Test --help flag
+        run: node bin/cli.js --help
+
+      - name: Test --version flag
+        run: node bin/cli.js --version
+
+      - name: Test --tokens-only mode
+        run: node bin/cli.js . --tokens-only --json
+
+      - name: Test --no-models --no-endpoints
+        run: node bin/cli.js . --no-models --no-endpoints --json
+
+      - name: Test JSON report output
+        run: |
+          node bin/cli.js . -o report.json
+          cat report.json
+
+      - name: Test SARIF report output
+        run: |
+          node bin/cli.js . --sarif results.sarif
+          cat results.sarif
+
+      - name: Test empty directory scan
+        run: |
+          mkdir empty-test
+          node bin/cli.js ./empty-test
+
+      - name: Test exit code (should be 0 on clean repo)
+        run: |
+          mkdir clean-test
+          echo "console.log('hello')" > clean-test/app.js
+          node bin/cli.js ./clean-test --exit-code
