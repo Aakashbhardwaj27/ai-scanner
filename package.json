@@ -1,6 +1,6 @@
 {
   "name": "ai-scanner",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "CLI tool to scan codebases for LLM SDK usage, AI frameworks, and exposed API tokens",
   "main": "lib/index.js",
   "bin": {

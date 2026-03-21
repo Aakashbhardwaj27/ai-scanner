@@ -16,7 +16,7 @@ for (let i = 0; i < args.length; i++) {
     printHelp();
     process.exit(0);
   } else if (arg === '--version' || arg === '-v') {
-    console.log('ai-scanner v1.0.0');
+    console.log('ai-scanner v1.1.0');
     process.exit(0);
   } else if (arg === '-o' || arg === '--output') {
     flags.output = args[++i];
@@ -34,6 +34,8 @@ for (let i = 0; i < args.length; i++) {
     flags.exitCode = true;
   } else if (arg === '--scan-env') {
     flags.scanEnv = true;
+  } else if (arg === '--ai-only') {
+    flags.aiOnly = true;
   } else if (!arg.startsWith('-')) {
     positional.push(arg);
   } else {
@@ -57,13 +59,16 @@ try {
     includeEndpoints: !flags.noEndpoints,
     includeModels: !flags.noModels,
     scanEnv: flags.scanEnv,
+    aiOnly: flags.aiOnly,
   });
 
   let result = scanner.scan();
 
   if (flags.tokensOnly) {
-    result.findings = result.findings.filter(f => f.type === 'token');
+    result.findings = result.findings.filter(f => f.type === 'token' || f.type === 'secret');
     result.stats.totalFindings = result.findings.length;
+    result.stats.criticalFindings = result.findings.filter(f => f.severity === 'critical').length;
+    result.stats.highFindings = result.findings.filter(f => f.severity === 'high').length;
     result.stats.infoFindings = 0;
   }
 
@@ -113,7 +118,7 @@ try {
 // ─── Help ────────────────────────────────────────────────────────────────────
 function printHelp() {
   console.log(`
-  ${c.cyanBold('ai-scanner')} — Scan codebases for LLM SDK usage, AI frameworks & exposed tokens
+  ${c.cyanBold('ai-scanner')} — Scan codebases for LLM/AI usage, secrets & exposed tokens
 
   ${c.whiteBold('USAGE')}
     ai-scanner [directory] [options]
@@ -126,7 +131,8 @@ function printHelp() {
     --sarif <file>         Write SARIF report (for CI/CD integration)
     --no-endpoints         Skip API endpoint detection
     --no-models            Skip model name reference detection
-    --tokens-only          Only scan for exposed tokens (security mode)
+    --tokens-only          Only scan for exposed tokens & secrets (security mode)
+    --ai-only              Only scan for AI-specific patterns (skip generic secrets)
     --scan-env             Include .env files (skipped by default)
     --json                 Output results as JSON to stdout
     --exit-code            Exit with code 1 if critical/high findings
@@ -140,7 +146,7 @@ function printHelp() {
       (just documentation). Exposed tokens in docs are still flagged.
 
   ${c.whiteBold('EXAMPLES')}
-    ${c.gray('# Scan current directory')}
+    ${c.gray('# Scan current directory (AI + generic secrets)')}
     ai-scanner
 
     ${c.gray('# Scan a project folder')}
@@ -148,6 +154,9 @@ function printHelp() {
 
     ${c.gray('# Security-only scan with CI exit code')}
     ai-scanner --tokens-only --exit-code
+
+    ${c.gray('# AI patterns only (no Stripe, GitHub tokens, etc.)')}
+    ai-scanner --ai-only
 
     ${c.gray('# Include .env files in scan')}
     ai-scanner --scan-env

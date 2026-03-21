@@ -5,7 +5,7 @@
 <h1 align="center">ai-scanner</h1>
 
 <p align="center">
-  Scan your codebase for LLM SDK usage, AI frameworks, and exposed API tokens.
+  Scan your codebase for LLM SDK usage, AI frameworks, exposed API tokens, and hardcoded secrets.
 </p>
 
 <p align="center">
@@ -13,11 +13,12 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-≥18-brightgreen.svg" alt="Node.js"></a>
   <img src="https://img.shields.io/badge/dependencies-0-blue.svg" alt="Zero Dependencies">
+  <img src="https://img.shields.io/badge/patterns-145-orange.svg" alt="145 Patterns">
 </p>
 
-A powerful CLI tool that scans your codebase to detect **LLM SDK usage**, **AI framework integrations**, and **exposed API tokens/keys** for any LLM provider.
+A powerful CLI tool that scans your codebase to detect **LLM SDK usage**, **AI framework integrations**, **exposed API tokens**, and **hardcoded secrets** — all in one command.
 
-Zero dependencies. Works with Node.js 18+.
+Zero dependencies. 145 detection patterns. Works with Node.js 18+.
 
 <img src="./docs/banner.jpg"  />
 
@@ -25,13 +26,14 @@ Zero dependencies. Works with Node.js 18+.
 
 - **LLM SDK Detection** — OpenAI, Anthropic, Google Gemini, Cohere, Mistral, Groq, Replicate, Together AI, AWS Bedrock, Azure OpenAI, Ollama, LiteLLM, DeepSeek, and more
 - **AI Framework Detection** — LangChain, LlamaIndex, Haystack, AutoGen, CrewAI, Vercel AI SDK, DSPy, Semantic Kernel, LangGraph, vLLM, and more
-- **Token/Key Exposure Scanning** — Detects hardcoded API keys for OpenAI (`sk-`), Anthropic (`sk-ant-`), Hugging Face (`hf_`), Google (`AIzaSy`), AWS (`AKIA`), Groq (`gsk_`), Replicate (`r8_`), LangSmith (`ls__`), and generic credential patterns
+- **AI Token Scanning** — Detects hardcoded keys for OpenAI (`sk-`), Anthropic (`sk-ant-`), Hugging Face (`hf_`), Google (`AIzaSy`), AWS (`AKIA`), Groq (`gsk_`), Replicate (`r8_`), LangSmith (`ls__`), and more
+- **Generic Secret Scanning** — Stripe, Twilio, SendGrid, GitHub, GitLab, Slack, Discord, Telegram, database URIs, private keys (RSA/SSH/PGP), JWTs, and 50+ more patterns
 - **Smart Filtering** — Ignores `.env` files (they're *meant* to hold secrets) and filters out SDK/framework mentions in READMEs, docs, and example files
 - **Model Reference Detection** — Spots references to GPT-4, Claude, Gemini, Llama, Mistral, and other models
 - **API Endpoint Detection** — Finds direct API calls to LLM providers
 - **Multiple Output Formats** — Rich console output, JSON, and SARIF (for CI/CD)
 - **Jupyter Notebook Support** — Parses `.ipynb` files to scan code cells
-- **Token Masking** — Automatically masks detected tokens in output for safety
+- **Token Masking** — Automatically masks detected secrets in output for safety
 
 ## Quick Start
 
@@ -47,14 +49,17 @@ ai-scanner ./my-project
 ## Usage
 
 ```bash
-# Scan current directory
+# Scan current directory (AI + generic secrets)
 ai-scanner
 
 # Scan a specific directory
 ai-scanner ./my-project
 
-# Security-focused: only scan for exposed tokens
+# Security-focused: only scan for exposed tokens & secrets
 ai-scanner --tokens-only
+
+# AI patterns only (skip Stripe, GitHub tokens, etc.)
+ai-scanner --ai-only
 
 # Include .env files in scan (skipped by default)
 ai-scanner --scan-env
@@ -82,7 +87,7 @@ ai-scanner ./src --tokens-only --exit-code --json
 
 ai-scanner is context-aware and avoids noisy false positives:
 
-| File type | SDK/Framework mentions | Exposed tokens |
+| File type | SDK/Framework mentions | Exposed tokens & secrets |
 |---|---|---|
 | **Source code** (`.js`, `.py`, `.go`, etc.) | ✅ Reported | ✅ Reported |
 | **README, docs, markdown** | ❌ Ignored (just documentation) | ✅ Reported |
@@ -97,7 +102,7 @@ This means scanning a project like an LLM gateway — which naturally references
 ### GitHub Actions
 
 ```yaml
-- name: Scan for exposed AI tokens
+- name: Scan for exposed tokens & secrets
   run: npx ai-scanner --tokens-only --exit-code --sarif results.sarif
 
 - name: Upload SARIF
@@ -117,32 +122,47 @@ npx ai-scanner --tokens-only --exit-code
 
 | Level | Meaning | Example |
 |-------|---------|---------|
-| 🚨 CRITICAL | Exposed API key with known prefix | `sk-ant-abc123...` hardcoded in source |
-| ⚠️ HIGH | Likely hardcoded credential | `api_key = "some-long-string"` |
+| 🚨 CRITICAL | Exposed key with known prefix | `sk-ant-abc123...`, `sk_live_...`, `ghp_...` |
+| ⚠️ HIGH | Likely hardcoded credential | `api_key = "..."`, JWT tokens, DB connection strings |
 | ℹ️ INFO | SDK/framework usage (awareness) | `import openai` |
 
 ## Supported Detections
 
-### LLM SDKs (16+)
+### AI Tokens (20+)
+OpenAI keys, Anthropic keys, Google AI keys, HuggingFace tokens, Cohere keys, Replicate tokens, Groq keys, Mistral keys, AWS access keys, LangSmith keys, Fireworks keys, W&B keys, Bearer tokens, Authorization headers
+
+### Generic Secrets (59 patterns)
+
+| Category | Detections |
+|---|---|
+| **Payment** | Stripe (live, restricted, webhook), Square, PayPal Braintree |
+| **Communication** | Twilio, SendGrid, Mailgun, Mailchimp, Postmark |
+| **Source Control** | GitHub (PAT, fine-grained, OAuth, app), GitLab, Bitbucket, CircleCI |
+| **Cloud** | GCP service accounts, DigitalOcean, Heroku, Vercel, Netlify, Cloudflare |
+| **Messaging** | Slack (bot, user, webhook), Discord (bot, webhook), Telegram |
+| **Database** | Postgres/MySQL/MongoDB/Redis/AMQP URIs, Supabase, Firebase, PlanetScale |
+| **Auth** | Auth0, Okta, Clerk |
+| **Monitoring** | Datadog, Sentry DSN, New Relic, Segment, Mixpanel |
+| **Crypto** | RSA, EC, DSA, SSH, PGP private keys |
+| **Generic** | Passwords, client secrets, connection strings, JWTs |
+
+### LLM SDKs (23)
 OpenAI, Anthropic, Google Generative AI, Vertex AI, Cohere, Mistral, Hugging Face, Replicate, Together AI, Groq, AWS Bedrock, Azure OpenAI, Ollama, LiteLLM, Fireworks AI, Perplexity, DeepSeek
 
-### AI Frameworks (20+)
+### AI Frameworks (24)
 LangChain, LangGraph, LangSmith, LlamaIndex, Haystack, AutoGen, CrewAI, Semantic Kernel, Vercel AI SDK, DSPy, Guidance, Instructor, Chainlit, Flowise, Embedchain, Promptflow, Spring AI, vLLM, TensorRT-LLM, MLflow, Weights & Biases, Smolagents
 
-### Token Patterns (20+)
-OpenAI keys, Anthropic keys, Google AI keys, HuggingFace tokens, Cohere keys, Replicate tokens, Groq keys, Mistral keys, AWS access keys, LangSmith keys, Fireworks keys, W&B keys, generic hardcoded API key assignments, Bearer tokens, Authorization headers
-
 ## Examples
- 
+
 Scan any public GitHub repo:
- 
+
 ```bash
 git clone --depth 1 https://github.com/user/repo /tmp/repo
 npx ai-scanner /tmp/repo
 ```
- 
+
 Or use the helper scripts in [`examples/`](examples/) — GitHub repo scanner, batch scanning, pre-commit hooks, GitHub Actions workflow, and using ai-scanner as a Node.js library.
- 
+
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
