@@ -1,0 +1,46 @@
+# ─────────────────────────────────────────────────────────────
+# ai-scan-pr.yml
+# Drop this into your repo's .github/workflows/ to automatically
+# scan every PR for exposed AI tokens before merge.
+# ─────────────────────────────────────────────────────────────
+
+name: AI Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Full scan — tokens + SDKs + frameworks (informational)
+      - name: Full AI scan
+        run: npx ai-scanner . -o ai-scan-report.json
+
+      # Upload full report as artifact
+      - name: Upload scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-scan-report
+          path: ai-scan-report.json
+
+      # Gate: fail the PR if hardcoded tokens are found
+      - name: Check for exposed tokens
+        run: npx ai-scanner . --tokens-only --exit-code
+
+      # Optional: SARIF upload for GitHub Security tab
+      - name: Generate SARIF
+        if: always()
+        run: npx ai-scanner . --sarif ai-scan.sarif
+
+      - name: Upload SARIF to GitHub
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ai-scan.sarif
