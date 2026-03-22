@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./logo.svg" width="80" alt="ai-scanner logo">
+  <img src="./logo-light.svg" width="80" alt="ai-scanner logo">
 </p>
 
 <h1 align="center">ai-scanner</h1>
@@ -10,10 +10,12 @@
 
 <p align="center">
   <a href="https://github.com/Aakashbhardwaj27/ai-scanner/actions/workflows/ci.yml"><img src="https://github.com/Aakashbhardwaj27/ai-scanner/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/ai-scanner"><img src="https://img.shields.io/npm/v/ai-scanner.svg" alt="npm version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-≥18-brightgreen.svg" alt="Node.js"></a>
   <img src="https://img.shields.io/badge/dependencies-0-blue.svg" alt="Zero Dependencies">
   <img src="https://img.shields.io/badge/patterns-145-orange.svg" alt="145 Patterns">
+  <a href="https://github.com/Aakashbhardwaj27/ai-scanner-mcp"><img src="https://img.shields.io/badge/MCP-compatible-blue.svg" alt="MCP"></a>
 </p>
 
 A powerful CLI tool that scans your codebase to detect **LLM SDK usage**, **AI framework integrations**, **exposed API tokens**, and **hardcoded secrets** — all in one command.
@@ -28,9 +30,8 @@ Zero dependencies. 145 detection patterns. Works with Node.js 18+.
 - **AI Framework Detection** — LangChain, LlamaIndex, Haystack, AutoGen, CrewAI, Vercel AI SDK, DSPy, Semantic Kernel, LangGraph, vLLM, and more
 - **AI Token Scanning** — Detects hardcoded keys for OpenAI (`sk-`), Anthropic (`sk-ant-`), Hugging Face (`hf_`), Google (`AIzaSy`), AWS (`AKIA`), Groq (`gsk_`), Replicate (`r8_`), LangSmith (`ls__`), and more
 - **Generic Secret Scanning** — Stripe, Twilio, SendGrid, GitHub, GitLab, Slack, Discord, Telegram, database URIs, private keys (RSA/SSH/PGP), JWTs, and 50+ more patterns
-- **Smart Filtering** — Ignores `.env` files (they're *meant* to hold secrets) and filters out SDK/framework mentions in READMEs, docs, and example files
-- **Model Reference Detection** — Spots references to GPT-4, Claude, Gemini, Llama, Mistral, and other models
-- **API Endpoint Detection** — Finds direct API calls to LLM providers
+- **Smart Filtering** — Ignores `.env` files and filters out SDK/framework mentions in READMEs, docs, and example files
+- **MCP Server** — Use with Claude Code, Cursor, and other AI agents via [ai-scanner-mcp](https://github.com/Aakashbhardwaj27/ai-scanner-mcp)
 - **Multiple Output Formats** — Rich console output, JSON, and SARIF (for CI/CD)
 - **Jupyter Notebook Support** — Parses `.ipynb` files to scan code cells
 - **Token Masking** — Automatically masks detected secrets in output for safety
@@ -82,6 +83,27 @@ ai-scanner --no-endpoints --no-models
 # Combine options
 ai-scanner ./src --tokens-only --exit-code --json
 ```
+
+## MCP Server
+
+Use ai-scanner as a tool for AI agents via the [Model Context Protocol](https://modelcontextprotocol.io):
+
+```bash
+# Claude Code
+claude mcp add ai-scanner npx ai-scanner-mcp
+
+# Claude Desktop / Cursor / Windsurf — add to config:
+{
+  "mcpServers": {
+    "ai-scanner": {
+      "command": "npx",
+      "args": ["ai-scanner-mcp"]
+    }
+  }
+}
+```
+
+Three tools available: `scan_directory`, `check_secrets`, `ai_inventory`. See [ai-scanner-mcp](https://github.com/Aakashbhardwaj27/ai-scanner-mcp) for full docs.
 
 ## Smart Filtering
 

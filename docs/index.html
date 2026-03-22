@@ -4,400 +4,122 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ai-scanner — Documentation</title>
-  <meta name="description" content="CLI tool to scan codebases for LLM SDK usage, AI frameworks, and exposed API tokens.">
+  <meta name="description" content="CLI tool to scan codebases for LLM SDK usage, AI frameworks, exposed API tokens, and hardcoded secrets.">
   <link rel="icon" href="./logo-light.svg" media="(prefers-color-scheme: light)">
   <link rel="icon" href="./logo.svg" media="(prefers-color-scheme: dark)">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* ── Light theme (default) ── */
     :root {
-      --md-primary: #e85d04;
-      --md-primary-light: #f97316;
-      --md-primary-bg: #fff7ed;
-      --md-bg: #ffffff;
-      --md-bg-alt: #f8f9fb;
-      --md-surface: #f1f3f5;
-      --md-surface-hover: #e9ecef;
-      --md-border: #dee2e6;
-      --md-text: #1a1a2e;
-      --md-text-secondary: #495057;
-      --md-text-muted: #868e96;
+      --md-primary: #e85d04; --md-primary-light: #f97316; --md-primary-bg: #fff7ed;
+      --md-bg: #ffffff; --md-bg-alt: #f8f9fb; --md-surface: #f1f3f5; --md-surface-hover: #e9ecef;
+      --md-border: #dee2e6; --md-text: #1a1a2e; --md-text-secondary: #495057; --md-text-muted: #868e96;
       --md-code-bg: #f5f6f8;
-      --md-callout-info-bg: #dbeafe;
-      --md-callout-info-border: #3b82f6;
-      --md-callout-info-title: #1d4ed8;
-      --md-callout-warn-bg: #fff7ed;
-      --md-callout-warn-border: #e85d04;
-      --md-callout-warn-title: #c2410c;
-      --md-green: #16a34a;
-      --md-red: #dc2626;
-      --md-yellow: #ca8a04;
-      --md-cyan: #0284c7;
-      --syn-comment: #6a737d;
-      --syn-string: #22863a;
-      --syn-keyword: #d73a49;
-      --syn-func: #6f42c1;
-      --syn-param: #005cc5;
-      --md-sidebar-w: 280px;
-      --md-header-h: 56px;
+      --md-callout-info-bg: #dbeafe; --md-callout-info-border: #3b82f6; --md-callout-info-title: #1d4ed8;
+      --md-callout-warn-bg: #fff7ed; --md-callout-warn-border: #e85d04; --md-callout-warn-title: #c2410c;
+      --md-green: #16a34a; --md-red: #dc2626; --md-yellow: #ca8a04; --md-cyan: #0284c7;
+      --syn-comment: #6a737d; --syn-string: #22863a; --syn-keyword: #d73a49; --syn-func: #6f42c1; --syn-param: #005cc5;
+      --md-sidebar-w: 280px; --md-header-h: 56px;
     }
-
-    /* ── Dark theme ── */
     [data-theme="dark"] {
-      --md-primary: #f97316;
-      --md-primary-light: #fb923c;
-      --md-primary-bg: #f9731615;
-      --md-bg: #0d1117;
-      --md-bg-alt: #161b22;
-      --md-surface: #1c2128;
-      --md-surface-hover: #242b35;
-      --md-border: #30363d;
-      --md-text: #e6edf3;
-      --md-text-secondary: #8b949e;
-      --md-text-muted: #6e7681;
+      --md-primary: #f97316; --md-primary-light: #fb923c; --md-primary-bg: #f9731615;
+      --md-bg: #0d1117; --md-bg-alt: #161b22; --md-surface: #1c2128; --md-surface-hover: #242b35;
+      --md-border: #30363d; --md-text: #e6edf3; --md-text-secondary: #8b949e; --md-text-muted: #6e7681;
       --md-code-bg: #161b22;
-      --md-callout-info-bg: #0c2d6b30;
-      --md-callout-info-border: #58a6ff;
-      --md-callout-info-title: #58a6ff;
-      --md-callout-warn-bg: #f9731615;
-      --md-callout-warn-border: #f97316;
-      --md-callout-warn-title: #f97316;
-      --md-green: #7ee787;
-      --md-red: #ef4444;
-      --md-yellow: #eab308;
-      --md-cyan: #06b6d4;
-      --syn-comment: #6e7681;
-      --syn-string: #7ee787;
-      --syn-keyword: #ff7b72;
-      --syn-func: #d2a8ff;
-      --syn-param: #79c0ff;
+      --md-callout-info-bg: #0c2d6b30; --md-callout-info-border: #58a6ff; --md-callout-info-title: #58a6ff;
+      --md-callout-warn-bg: #f9731615; --md-callout-warn-border: #f97316; --md-callout-warn-title: #f97316;
+      --md-green: #7ee787; --md-red: #ef4444; --md-yellow: #eab308; --md-cyan: #06b6d4;
+      --syn-comment: #6e7681; --syn-string: #7ee787; --syn-keyword: #ff7b72; --syn-func: #d2a8ff; --syn-param: #79c0ff;
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; scroll-padding-top: 80px; }
-
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: var(--md-bg);
-      color: var(--md-text);
-      line-height: 1.7;
-      font-size: 15px;
-      transition: background 0.25s, color 0.25s;
-    }
-
-    /* ── Header ── */
-    .header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      height: var(--md-header-h);
-      background: var(--md-bg-alt);
-      border-bottom: 1px solid var(--md-border);
-      display: flex; align-items: center;
-      padding: 0 1.5rem;
-      transition: background 0.25s, border-color 0.25s;
-    }
-
-    .header-inner {
-      display: flex; align-items: center; width: 100%;
-      max-width: 1400px; margin: 0 auto;
-    }
-
-    .header-logo {
-      display: flex; align-items: center; gap: 10px;
-      text-decoration: none; color: var(--md-text);
-      font-weight: 600; font-size: 0.95rem;
-    }
-
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--md-bg); color: var(--md-text); line-height: 1.7; font-size: 15px; transition: background 0.25s, color 0.25s; }
+    .header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: var(--md-header-h); background: var(--md-bg-alt); border-bottom: 1px solid var(--md-border); display: flex; align-items: center; padding: 0 1.5rem; transition: background 0.25s, border-color 0.25s; }
+    .header-inner { display: flex; align-items: center; width: 100%; max-width: 1400px; margin: 0 auto; }
+    .header-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--md-text); font-weight: 600; font-size: 0.95rem; }
     .header-logo img { width: 28px; height: 28px; border-radius: 6px; }
-
-    .header-nav {
-      display: flex; align-items: center; gap: 0.25rem;
-      margin-left: 2.5rem;
-    }
-
-    .header-nav a {
-      padding: 6px 14px; border-radius: 6px;
-      font-size: 0.82rem; font-weight: 500;
-      color: var(--md-text-secondary);
-      text-decoration: none; transition: all 0.15s;
-    }
-
-    .header-nav a:hover, .header-nav a.active {
-      color: var(--md-text); background: var(--md-surface);
-    }
-
-    .header-right {
-      margin-left: auto;
-      display: flex; align-items: center; gap: 0.75rem;
-    }
-
-    .gh-link {
-      display: flex; align-items: center; gap: 6px;
-      color: var(--md-text-secondary);
-      text-decoration: none; font-size: 0.82rem;
-      transition: color 0.15s;
-    }
-
+    .header-nav { display: flex; align-items: center; gap: 0.25rem; margin-left: 2.5rem; }
+    .header-nav a { padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; color: var(--md-text-secondary); text-decoration: none; transition: all 0.15s; }
+    .header-nav a:hover, .header-nav a.active { color: var(--md-text); background: var(--md-surface); }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
+    .gh-link { display: flex; align-items: center; gap: 6px; color: var(--md-text-secondary); text-decoration: none; font-size: 0.82rem; transition: color 0.15s; }
     .gh-link:hover { color: var(--md-text); }
-
-    /* ── Theme toggle ── */
-    .theme-btn {
-      display: flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px; border-radius: 8px;
-      border: 1px solid var(--md-border);
-      background: var(--md-surface);
-      color: var(--md-text-secondary);
-      cursor: pointer; transition: all 0.2s;
-    }
-
-    .theme-btn:hover {
-      color: var(--md-primary);
-      border-color: var(--md-primary);
-      background: var(--md-primary-bg);
-    }
-
+    .theme-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--md-border); background: var(--md-surface); color: var(--md-text-secondary); cursor: pointer; transition: all 0.2s; }
+    .theme-btn:hover { color: var(--md-primary); border-color: var(--md-primary); background: var(--md-primary-bg); }
     .theme-btn svg { width: 18px; height: 18px; }
-
-    .theme-btn .icon-sun,
-    .theme-btn .icon-moon,
-    .theme-btn .icon-system { display: none; }
-
-    /* Show correct icon based on data-mode attr on the button */
+    .theme-btn .icon-sun, .theme-btn .icon-moon, .theme-btn .icon-system { display: none; }
     .theme-btn[data-mode="light"] .icon-sun { display: block; }
     .theme-btn[data-mode="dark"] .icon-moon { display: block; }
     .theme-btn[data-mode="system"] .icon-system { display: block; }
-
-    /* ── Layout ── */
-    .layout {
-      display: flex; max-width: 1400px;
-      margin: 0 auto; padding-top: var(--md-header-h);
-    }
-
-    /* ── Sidebar ── */
-    .sidebar {
-      position: sticky; top: var(--md-header-h);
-      width: var(--md-sidebar-w);
-      height: calc(100vh - var(--md-header-h));
-      overflow-y: auto; padding: 1.5rem 1rem 2rem 1.5rem;
-      border-right: 1px solid var(--md-border);
-      flex-shrink: 0; transition: border-color 0.25s;
-    }
-
+    .layout { display: flex; max-width: 1400px; margin: 0 auto; padding-top: var(--md-header-h); }
+    .sidebar { position: sticky; top: var(--md-header-h); width: var(--md-sidebar-w); height: calc(100vh - var(--md-header-h)); overflow-y: auto; padding: 1.5rem 1rem 2rem 1.5rem; border-right: 1px solid var(--md-border); flex-shrink: 0; transition: border-color 0.25s; }
     .sidebar::-webkit-scrollbar { width: 4px; }
     .sidebar::-webkit-scrollbar-thumb { background: var(--md-border); border-radius: 4px; }
-
     .sidebar-section { margin-bottom: 1.5rem; }
-
-    .sidebar-label {
-      font-size: 0.7rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--md-text-muted); padding: 0 0.5rem; margin-bottom: 0.4rem;
-    }
-
-    .sidebar a {
-      display: block; padding: 5px 12px; border-radius: 6px;
-      font-size: 0.835rem; color: var(--md-text-secondary);
-      text-decoration: none; transition: all 0.15s; margin-bottom: 1px;
-    }
-
+    .sidebar-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--md-text-muted); padding: 0 0.5rem; margin-bottom: 0.4rem; }
+    .sidebar a { display: block; padding: 5px 12px; border-radius: 6px; font-size: 0.835rem; color: var(--md-text-secondary); text-decoration: none; transition: all 0.15s; margin-bottom: 1px; }
     .sidebar a:hover { color: var(--md-text); background: var(--md-surface); }
-
-    .sidebar a.active {
-      color: var(--md-primary);
-      background: var(--md-primary-bg);
-      font-weight: 500;
-    }
-
-    /* ── Main ── */
-    .main {
-      flex: 1; min-width: 0;
-      padding: 2.5rem 3rem 4rem; max-width: 880px;
-    }
-
-    /* ── TOC ── */
-    .toc {
-      position: sticky; top: var(--md-header-h);
-      width: 220px; height: calc(100vh - var(--md-header-h));
-      overflow-y: auto; padding: 1.5rem 1.5rem 2rem 1rem; flex-shrink: 0;
-    }
-
-    .toc-label {
-      font-size: 0.7rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--md-text-muted); margin-bottom: 0.75rem;
-    }
-
-    .toc a {
-      display: block; padding: 3px 0; font-size: 0.78rem;
-      color: var(--md-text-muted); text-decoration: none;
-      border-left: 2px solid transparent; padding-left: 12px;
-      transition: all 0.15s;
-    }
-
-    .toc a:hover, .toc a.active {
-      color: var(--md-primary); border-left-color: var(--md-primary);
-    }
-
-    /* ── Typography ── */
+    .sidebar a.active { color: var(--md-primary); background: var(--md-primary-bg); font-weight: 500; }
+    .main { flex: 1; min-width: 0; padding: 2.5rem 3rem 4rem; max-width: 880px; }
+    .toc { position: sticky; top: var(--md-header-h); width: 220px; height: calc(100vh - var(--md-header-h)); overflow-y: auto; padding: 1.5rem 1.5rem 2rem 1rem; flex-shrink: 0; }
+    .toc-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--md-text-muted); margin-bottom: 0.75rem; }
+    .toc a { display: block; padding: 3px 0; font-size: 0.78rem; color: var(--md-text-muted); text-decoration: none; border-left: 2px solid transparent; padding-left: 12px; transition: all 0.15s; }
+    .toc a:hover, .toc a.active { color: var(--md-primary); border-left-color: var(--md-primary); }
     .main h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
     .main h2 { font-size: 1.35rem; font-weight: 600; margin-top: 3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--md-border); letter-spacing: -0.01em; }
     .main h3 { font-size: 1.05rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; }
     .main p { margin-bottom: 1rem; color: var(--md-text-secondary); }
     .main a { color: var(--md-primary); text-decoration: none; }
     .main a:hover { text-decoration: underline; }
-
     .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 2.5rem; }
     .badges img { height: 20px; }
-
-    /* ── Hero ── */
-    .hero-banner {
-      text-align: center; padding: 2.5rem 2rem;
-      background: var(--md-surface); border: 1px solid var(--md-border);
-      border-radius: 12px; margin-bottom: 2.5rem;
-      transition: background 0.25s, border-color 0.25s;
-    }
-
+    .hero-banner { text-align: center; padding: 2.5rem 2rem; background: var(--md-surface); border: 1px solid var(--md-border); border-radius: 12px; margin-bottom: 2.5rem; transition: background 0.25s, border-color 0.25s; }
     .hero-banner img { width: 72px; margin-bottom: 1rem; border-radius: 16px; }
     .hero-banner h1 { margin-bottom: 0.4rem; }
     .hero-banner p { color: var(--md-text-secondary); max-width: 560px; margin: 0 auto; }
-
-    /* Logo swap */
-    .logo-dark { display: none; }
-    .logo-light { display: inline; }
-    [data-theme="dark"] .logo-dark { display: inline; }
-    [data-theme="dark"] .logo-light { display: none; }
-
-    /* ── Cards ── */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1rem; margin: 1.5rem 0 2rem;
-    }
-
-    .card {
-      padding: 1.25rem 1.4rem;
-      background: var(--md-surface); border: 1px solid var(--md-border);
-      border-radius: 8px; transition: all 0.2s;
-    }
-
-    .card:hover {
-      border-color: var(--md-primary); background: var(--md-surface-hover);
-    }
-
+    .logo-dark { display: none; } .logo-light { display: inline; }
+    [data-theme="dark"] .logo-dark { display: inline; } [data-theme="dark"] .logo-light { display: none; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0 2rem; }
+    .card { padding: 1.25rem 1.4rem; background: var(--md-surface); border: 1px solid var(--md-border); border-radius: 8px; transition: all 0.2s; }
+    .card:hover { border-color: var(--md-primary); background: var(--md-surface-hover); }
     .card h3 { font-size: 0.92rem; font-weight: 600; margin: 0 0 0.4rem; color: var(--md-text); }
     .card p { font-size: 0.83rem; color: var(--md-text-secondary); margin: 0; line-height: 1.55; }
-
-    .card-link {
-      display: inline-block; margin-top: 0.6rem;
-      font-size: 0.8rem; font-weight: 500;
-      color: var(--md-primary); text-decoration: none;
-    }
-
+    .card-link { display: inline-block; margin-top: 0.6rem; font-size: 0.8rem; font-weight: 500; color: var(--md-primary); text-decoration: none; }
     .card-link:hover { text-decoration: underline; }
-
-    /* ── Code ── */
-    pre {
-      background: var(--md-code-bg); border: 1px solid var(--md-border);
-      border-radius: 8px; padding: 1rem 1.25rem;
-      overflow-x: auto; margin-bottom: 1.5rem;
-      font-size: 0.82rem; line-height: 1.7;
-      transition: background 0.25s, border-color 0.25s;
-    }
-
+    pre { background: var(--md-code-bg); border: 1px solid var(--md-border); border-radius: 8px; padding: 1rem 1.25rem; overflow-x: auto; margin-bottom: 1.5rem; font-size: 0.82rem; line-height: 1.7; transition: background 0.25s, border-color 0.25s; }
     code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
-
-    p code {
-      background: var(--md-code-bg); border: 1px solid var(--md-border);
-      padding: 2px 6px; border-radius: 4px; font-size: 0.82em;
-    }
-
-    .cmd { color: var(--md-text); }
-    .comment { color: var(--syn-comment); }
-    .string { color: var(--syn-string); }
-    .keyword { color: var(--syn-keyword); }
-    .func { color: var(--syn-func); }
-    .param { color: var(--syn-param); }
-
-    /* ── Tables ── */
+    p code { background: var(--md-code-bg); border: 1px solid var(--md-border); padding: 2px 6px; border-radius: 4px; font-size: 0.82em; }
+    .cmd { color: var(--md-text); } .comment { color: var(--syn-comment); } .string { color: var(--syn-string); } .keyword { color: var(--syn-keyword); } .func { color: var(--syn-func); } .param { color: var(--syn-param); }
     table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.85rem; }
-
-    th {
-      text-align: left; padding: 10px 14px;
-      background: var(--md-surface); border-bottom: 2px solid var(--md-border);
-      font-weight: 600; font-size: 0.8rem; color: var(--md-text-secondary);
-    }
-
+    th { text-align: left; padding: 10px 14px; background: var(--md-surface); border-bottom: 2px solid var(--md-border); font-weight: 600; font-size: 0.8rem; color: var(--md-text-secondary); }
     td { padding: 10px 14px; border-bottom: 1px solid var(--md-border); color: var(--md-text-secondary); }
     td code { font-size: 0.8rem; }
-
-    /* ── Tags ── */
     .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0.75rem 0 1.5rem; }
-
-    .tag {
-      font-size: 0.75rem; padding: 3px 10px;
-      background: var(--md-surface); border: 1px solid var(--md-border);
-      border-radius: 100px; color: var(--md-text-secondary);
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* ── Callouts ── */
-    .callout {
-      padding: 1rem 1.25rem; border-radius: 8px;
-      border-left: 4px solid; margin-bottom: 1.5rem; font-size: 0.88rem;
-      transition: background 0.25s;
-    }
-
-    .callout-title {
-      font-weight: 600; font-size: 0.8rem;
-      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.3rem;
-    }
-
+    .tag { font-size: 0.75rem; padding: 3px 10px; background: var(--md-surface); border: 1px solid var(--md-border); border-radius: 100px; color: var(--md-text-secondary); font-family: 'JetBrains Mono', monospace; }
+    .callout { padding: 1rem 1.25rem; border-radius: 8px; border-left: 4px solid; margin-bottom: 1.5rem; font-size: 0.88rem; transition: background 0.25s; }
+    .callout-title { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.3rem; }
     .callout p { margin: 0; color: var(--md-text-secondary); }
-
     .callout-info { background: var(--md-callout-info-bg); border-color: var(--md-callout-info-border); }
     .callout-info .callout-title { color: var(--md-callout-info-title); }
     .callout-warn { background: var(--md-callout-warn-bg); border-color: var(--md-callout-warn-border); }
     .callout-warn .callout-title { color: var(--md-callout-warn-title); }
-
     hr { border: none; border-top: 1px solid var(--md-border); margin: 2rem 0; }
-
-    /* ── Footer ── */
-    .footer {
-      border-top: 1px solid var(--md-border); padding: 1.5rem;
-      text-align: center; font-size: 0.78rem; color: var(--md-text-muted);
-    }
-
-    .footer a { color: var(--md-text-secondary); text-decoration: none; }
-    .footer a:hover { color: var(--md-primary); }
-
-    /* ── Mobile ── */
+    .footer { border-top: 1px solid var(--md-border); padding: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--md-text-muted); }
+    .footer a { color: var(--md-text-secondary); text-decoration: none; } .footer a:hover { color: var(--md-primary); }
     .menu-btn { display: none; background: none; border: none; color: var(--md-text); cursor: pointer; padding: 8px; }
-
     @media (max-width: 1100px) { .toc { display: none; } }
-
-    @media (max-width: 860px) {
-      .sidebar { display: none; position: fixed; left: 0; top: var(--md-header-h); bottom: 0; z-index: 99; background: var(--md-bg-alt); width: 280px; border-right: 1px solid var(--md-border); }
-      .sidebar.open { display: block; }
-      .menu-btn { display: block; }
-      .header-nav { display: none; }
-      .main { padding: 2rem 1.5rem; }
-    }
+    @media (max-width: 860px) { .sidebar { display: none; position: fixed; left: 0; top: var(--md-header-h); bottom: 0; z-index: 99; background: var(--md-bg-alt); width: 280px; border-right: 1px solid var(--md-border); } .sidebar.open { display: block; } .menu-btn { display: block; } .header-nav { display: none; } .main { padding: 2rem 1.5rem; } }
   </style>
   <script>
     (function() {
       var saved = localStorage.getItem('theme');
-      if (saved === 'light' || saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', saved);
-      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
+      if (saved === 'light' || saved === 'dark') { document.documentElement.setAttribute('data-theme', saved); }
+      else if (window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.setAttribute('data-theme', 'dark'); }
+      else { document.documentElement.setAttribute('data-theme', 'light'); }
     })();
   </script>
 </head>
 <body>
 
-<!-- Header -->
 <header class="header">
   <div class="header-inner">
     <button class="menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">
@@ -413,6 +135,7 @@
       <a href="#getting-started">Getting Started</a>
       <a href="#usage">Usage</a>
       <a href="#detection">Detection</a>
+      <a href="#mcp">MCP</a>
       <a href="#examples">Examples</a>
       <a href="#ci-cd">CI/CD</a>
       <a href="#about">About</a>
@@ -432,72 +155,49 @@
 </header>
 
 <div class="layout">
-
-  <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">Home</div>
-      <a href="#" class="active">Overview</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Getting Started</div>
-      <a href="#installation">Installation</a>
-      <a href="#getting-started">Quick Start</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Usage</div>
-      <a href="#usage">CLI Options</a>
-      <a href="#smart-filtering">Smart Filtering</a>
-    </div>
+    <div class="sidebar-section"><div class="sidebar-label">Home</div><a href="#" class="active">Overview</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Getting Started</div><a href="#installation">Installation</a><a href="#getting-started">Quick Start</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Usage</div><a href="#usage">CLI Options</a><a href="#smart-filtering">Smart Filtering</a></div>
     <div class="sidebar-section">
       <div class="sidebar-label">Detection</div>
+      <a href="#ai-tokens">AI Tokens</a>
+      <a href="#generic-secrets">Generic Secrets</a>
       <a href="#llm-sdks">LLM SDKs</a>
       <a href="#ai-frameworks">AI Frameworks</a>
-      <a href="#token-patterns">Token Patterns</a>
       <a href="#severity-levels">Severity Levels</a>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Examples</div>
-      <a href="#scan-github-repo">Scan a GitHub Repo</a>
-      <a href="#batch-scan">Batch Scan Repos</a>
-      <a href="#use-as-library">Use as a Library</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Integration</div>
-      <a href="#ci-cd">CI/CD</a>
-      <a href="#github-actions">GitHub Actions</a>
-      <a href="#pre-commit">Pre-commit Hook</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">About</div>
-      <a href="#about">License &amp; Contributing</a>
-    </div>
+    <div class="sidebar-section"><div class="sidebar-label">MCP Server</div><a href="#mcp">Setup</a><a href="#mcp-tools">Tools</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Examples</div><a href="#scan-github-repo">Scan a GitHub Repo</a><a href="#batch-scan">Batch Scan Repos</a><a href="#use-as-library">Use as a Library</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">Integration</div><a href="#ci-cd">CI/CD</a><a href="#github-actions">GitHub Actions</a><a href="#pre-commit">Pre-commit Hook</a></div>
+    <div class="sidebar-section"><div class="sidebar-label">About</div><a href="#about">License &amp; Contributing</a></div>
   </aside>
 
-  <!-- Main -->
   <main class="main">
 
     <div class="hero-banner">
       <img src="logo.svg" alt="ai-scanner" class="logo-dark">
       <img src="logo-light.svg" alt="ai-scanner" class="logo-light">
       <h1>ai-scanner</h1>
-      <p>Scan your codebase for LLM SDK usage, AI framework integrations, and exposed API tokens.</p>
+      <p>Scan your codebase for LLM SDK usage, AI frameworks, exposed API tokens, and hardcoded secrets.</p>
       <div class="badges" style="justify-content:center; margin-top:1.25rem; margin-bottom:0;">
         <a href="https://github.com/Aakashbhardwaj27/ai-scanner/actions/workflows/ci.yml"><img src="https://github.com/Aakashbhardwaj27/ai-scanner/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+        <a href="https://www.npmjs.com/package/ai-scanner"><img src="https://img.shields.io/npm/v/ai-scanner.svg" alt="npm"></a>
         <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT">
         <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg" alt="Node 18+">
-        <img src="https://img.shields.io/badge/dependencies-0-blue.svg" alt="Zero deps">
+        <img src="https://img.shields.io/badge/patterns-145-orange.svg" alt="145 patterns">
+        <a href="https://github.com/Aakashbhardwaj27/ai-scanner-mcp"><img src="https://img.shields.io/badge/MCP-compatible-blue.svg" alt="MCP"></a>
       </div>
     </div>
 
-    <p>Zero dependencies. Works with Node.js 18+. Detects 16+ LLM SDKs, 20+ AI frameworks, and 20+ API token patterns across Python, JavaScript, TypeScript, Go, Java, and more.</p>
+    <p>Zero dependencies. 145 detection patterns. Works with Node.js 18+. Detects 23 LLM SDKs, 24 AI frameworks, 20+ AI token patterns, and 59 generic secret patterns across Python, JavaScript, TypeScript, Go, Java, and more.</p>
 
     <div class="grid">
-      <div class="card"><h3>🚨 Token Detection</h3><p>Catches hardcoded API keys for OpenAI, Anthropic, Google, AWS, HuggingFace, Groq, and 15+ other providers.</p></div>
-      <div class="card"><h3>📦 SDK Discovery</h3><p>Detects imports and client initialization for 16+ LLM SDKs across all major languages.</p></div>
-      <div class="card"><h3>🧠 Framework Detection</h3><p>Finds LangChain, LlamaIndex, CrewAI, AutoGen, DSPy, Vercel AI SDK, and 20+ more.</p></div>
+      <div class="card"><h3>🚨 Token &amp; Secret Detection</h3><p>Catches hardcoded API keys for OpenAI, Anthropic, Stripe, GitHub, Slack, Twilio, and 50+ more providers. AI tokens + generic secrets in one scan.</p></div>
+      <div class="card"><h3>📦 SDK Discovery</h3><p>Detects imports and client initialization for 23 LLM SDKs across all major languages.</p></div>
+      <div class="card"><h3>🧠 Framework Detection</h3><p>Finds LangChain, LlamaIndex, CrewAI, AutoGen, DSPy, Vercel AI SDK, and 24 total frameworks.</p></div>
       <div class="card"><h3>🧹 Smart Filtering</h3><p>Context-aware — ignores mentions in docs and README files. Skips .env files by default.</p></div>
-      <div class="card"><h3>⚡ Zero Dependencies</h3><p>Pure Node.js. Runs instantly with npx. No install needed.</p></div>
+      <div class="card"><h3>🤖 MCP Server</h3><p>Use with Claude Code, Cursor, and Windsurf via the Model Context Protocol. 3 tools for AI agents.</p></div>
       <div class="card"><h3>🔄 CI/CD Ready</h3><p>JSON and SARIF output. Exit code flag. GitHub Actions, pre-commit hooks, scheduled audits.</p></div>
     </div>
 
@@ -510,20 +210,19 @@
 <span class="comment"># Or install globally</span>
 <span class="cmd">npm install -g ai-scanner</span>
 <span class="cmd">ai-scanner ./my-project</span></code></pre>
-
-    <div class="callout callout-info"><div class="callout-title">Tip</div><p>Requires Node.js 18 or higher. No external dependencies — the tool is completely self-contained.</p></div>
+    <div class="callout callout-info"><div class="callout-title">Tip</div><p>Requires Node.js 18 or higher. Zero dependencies — the tool is completely self-contained.</p></div>
 
     <hr>
 
     <h2 id="getting-started">Quick Start</h2>
     <p>Point ai-scanner at any directory to get instant results:</p>
-    <pre><code><span class="comment"># Scan current directory</span>
+    <pre><code><span class="comment"># Scan current directory (AI + generic secrets)</span>
 <span class="cmd">ai-scanner</span>
 
 <span class="comment"># Scan a specific project</span>
 <span class="cmd">ai-scanner ./my-project</span>
 
-<span class="comment"># Security-only: just find exposed tokens</span>
+<span class="comment"># Security-only: just find exposed tokens & secrets</span>
 <span class="cmd">ai-scanner --tokens-only</span></code></pre>
 
     <hr>
@@ -534,7 +233,8 @@
       <tbody>
         <tr><td><code>-o, --output &lt;file&gt;</code></td><td>Write JSON report to file</td></tr>
         <tr><td><code>--sarif &lt;file&gt;</code></td><td>Write SARIF report (for CI/CD integration)</td></tr>
-        <tr><td><code>--tokens-only</code></td><td>Only scan for exposed tokens (security mode)</td></tr>
+        <tr><td><code>--tokens-only</code></td><td>Only scan for exposed tokens &amp; secrets (security mode)</td></tr>
+        <tr><td><code>--ai-only</code></td><td>Only scan AI-specific patterns (skip generic secrets)</td></tr>
         <tr><td><code>--scan-env</code></td><td>Include .env files (skipped by default)</td></tr>
         <tr><td><code>--no-endpoints</code></td><td>Skip API endpoint detection</td></tr>
         <tr><td><code>--no-models</code></td><td>Skip model name reference detection</td></tr>
@@ -544,12 +244,11 @@
         <tr><td><code>-v, --version</code></td><td>Show version number</td></tr>
       </tbody>
     </table>
-
     <pre><code><span class="comment"># Combine flags for CI pipelines</span>
 <span class="cmd">ai-scanner ./src --tokens-only --exit-code --json</span>
 
-<span class="comment"># Generate SARIF for GitHub code scanning</span>
-<span class="cmd">ai-scanner --sarif results.sarif --exit-code</span>
+<span class="comment"># AI patterns only (no Stripe, GitHub tokens, etc.)</span>
+<span class="cmd">ai-scanner --ai-only</span>
 
 <span class="comment"># Include .env files in the scan</span>
 <span class="cmd">ai-scanner --scan-env</span></code></pre>
@@ -558,9 +257,8 @@
 
     <h2 id="smart-filtering">Smart Filtering</h2>
     <p>ai-scanner is context-aware. It distinguishes between <em>using</em> an SDK in source code vs. <em>mentioning</em> it in documentation.</p>
-
     <table>
-      <thead><tr><th>File type</th><th>SDK/Framework mentions</th><th>Exposed tokens</th></tr></thead>
+      <thead><tr><th>File type</th><th>SDK/Framework mentions</th><th>Exposed tokens &amp; secrets</th></tr></thead>
       <tbody>
         <tr><td>Source code (<code>.js</code>, <code>.py</code>, <code>.go</code>, etc.)</td><td style="color:var(--md-green);">✅ Reported</td><td style="color:var(--md-green);">✅ Reported</td></tr>
         <tr><td>README, docs, markdown</td><td style="color:var(--md-text-muted);">❌ Ignored</td><td style="color:var(--md-green);">✅ Reported</td></tr>
@@ -569,49 +267,97 @@
         <tr><td><code>.env</code> with <code>--scan-env</code></td><td style="color:var(--md-text-muted);">—</td><td style="color:var(--md-green);">✅ Reported</td></tr>
       </tbody>
     </table>
-
     <div class="callout callout-warn"><div class="callout-title">Why skip .env?</div><p><code>.env</code> files are <em>designed</em> to hold secrets — they should be in your <code>.gitignore</code>. The real risk is keys hardcoded directly in source files. Use <code>--scan-env</code> if you want to include them.</p></div>
 
     <hr>
 
     <h2 id="detection">Detection Coverage</h2>
 
-    <h3 id="llm-sdks">LLM SDKs <span style="font-size:0.75rem;color:var(--md-primary);font-weight:600;">16+</span></h3>
+    <h3 id="ai-tokens">AI Tokens <span style="font-size:0.75rem;color:var(--md-primary);font-weight:600;">20+</span></h3>
+    <div class="tags">
+      <span class="tag">sk-proj-*</span><span class="tag">sk-ant-*</span><span class="tag">AIzaSy*</span><span class="tag">hf_*</span><span class="tag">AKIA*</span><span class="tag">gsk_*</span><span class="tag">r8_*</span><span class="tag">ls__*</span><span class="tag">fw_*</span><span class="tag">Bearer *</span><span class="tag">api_key=</span><span class="tag">co-*</span><span class="tag">msrl-*</span>
+    </div>
+
+    <h3 id="generic-secrets">Generic Secrets <span style="font-size:0.75rem;color:var(--md-primary);font-weight:600;">59 patterns</span></h3>
+    <table>
+      <thead><tr><th>Category</th><th>Detections</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Payment</strong></td><td>Stripe (live, restricted, webhook), Square, PayPal Braintree</td></tr>
+        <tr><td><strong>Communication</strong></td><td>Twilio, SendGrid, Mailgun, Mailchimp, Postmark</td></tr>
+        <tr><td><strong>Source Control</strong></td><td>GitHub (PAT, fine-grained, OAuth, app), GitLab, Bitbucket, CircleCI</td></tr>
+        <tr><td><strong>Cloud</strong></td><td>GCP service accounts, DigitalOcean, Heroku, Vercel, Netlify, Cloudflare</td></tr>
+        <tr><td><strong>Messaging</strong></td><td>Slack (bot, user, webhook), Discord (bot, webhook), Telegram</td></tr>
+        <tr><td><strong>Database</strong></td><td>Postgres/MySQL/MongoDB/Redis/AMQP URIs, Supabase, Firebase, PlanetScale</td></tr>
+        <tr><td><strong>Auth</strong></td><td>Auth0, Okta, Clerk</td></tr>
+        <tr><td><strong>Monitoring</strong></td><td>Datadog, Sentry DSN, New Relic, Segment, Mixpanel</td></tr>
+        <tr><td><strong>Crypto</strong></td><td>RSA, EC, DSA, SSH, PGP private keys</td></tr>
+        <tr><td><strong>Generic</strong></td><td>Passwords, client secrets, connection strings, JWTs</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="llm-sdks">LLM SDKs <span style="font-size:0.75rem;color:var(--md-primary);font-weight:600;">23</span></h3>
     <div class="tags">
       <span class="tag">OpenAI</span><span class="tag">Anthropic</span><span class="tag">Google Gemini</span><span class="tag">Vertex AI</span><span class="tag">Cohere</span><span class="tag">Mistral</span><span class="tag">Groq</span><span class="tag">Replicate</span><span class="tag">Together AI</span><span class="tag">AWS Bedrock</span><span class="tag">Azure OpenAI</span><span class="tag">Ollama</span><span class="tag">LiteLLM</span><span class="tag">DeepSeek</span><span class="tag">Fireworks AI</span><span class="tag">Perplexity</span><span class="tag">HuggingFace</span>
     </div>
 
-    <h3 id="ai-frameworks">AI Frameworks <span style="font-size:0.75rem;color:var(--md-primary);font-weight:600;">20+</span></h3>
+    <h3 id="ai-frameworks">AI Frameworks <span style="font-size:0.75rem;color:var(--md-primary);font-weight:600;">24</span></h3>
     <div class="tags">
       <span class="tag">LangChain</span><span class="tag">LangGraph</span><span class="tag">LlamaIndex</span><span class="tag">CrewAI</span><span class="tag">AutoGen</span><span class="tag">DSPy</span><span class="tag">Haystack</span><span class="tag">Vercel AI SDK</span><span class="tag">Semantic Kernel</span><span class="tag">Instructor</span><span class="tag">Chainlit</span><span class="tag">vLLM</span><span class="tag">MLflow</span><span class="tag">W&amp;B</span><span class="tag">Spring AI</span><span class="tag">Guidance</span><span class="tag">Promptflow</span><span class="tag">Smolagents</span>
-    </div>
-
-    <h3 id="token-patterns">Token Patterns <span style="font-size:0.75rem;color:var(--md-primary);font-weight:600;">20+</span></h3>
-    <div class="tags">
-      <span class="tag">sk-proj-*</span><span class="tag">sk-ant-*</span><span class="tag">AIzaSy*</span><span class="tag">hf_*</span><span class="tag">AKIA*</span><span class="tag">gsk_*</span><span class="tag">r8_*</span><span class="tag">ls__*</span><span class="tag">fw_*</span><span class="tag">Bearer *</span><span class="tag">api_key=</span><span class="tag">co-*</span><span class="tag">msrl-*</span>
     </div>
 
     <h3 id="severity-levels">Severity Levels</h3>
     <table>
       <thead><tr><th>Level</th><th>Meaning</th><th>Example</th></tr></thead>
       <tbody>
-        <tr><td><span style="color:var(--md-red);font-weight:600;">CRITICAL</span></td><td>Exposed API key with known prefix</td><td><code>sk-ant-abc123...</code> in source</td></tr>
-        <tr><td><span style="color:var(--md-yellow);font-weight:600;">HIGH</span></td><td>Likely hardcoded credential</td><td><code>api_key = "long-string"</code></td></tr>
+        <tr><td><span style="color:var(--md-red);font-weight:600;">CRITICAL</span></td><td>Exposed key with known prefix</td><td><code>sk-ant-abc123...</code>, <code>sk_live_...</code>, <code>ghp_...</code></td></tr>
+        <tr><td><span style="color:var(--md-yellow);font-weight:600;">HIGH</span></td><td>Likely hardcoded credential</td><td><code>api_key = "..."</code>, JWT tokens, DB strings</td></tr>
         <tr><td><span style="color:var(--md-cyan);font-weight:600;">INFO</span></td><td>SDK/framework usage (awareness)</td><td><code>import openai</code></td></tr>
       </tbody>
     </table>
 
     <hr>
 
-    <!-- Examples -->
-    <h2 id="examples">Examples</h2>
+    <!-- MCP -->
+    <h2 id="mcp">MCP Server</h2>
+    <p>Use ai-scanner as a tool for AI agents via the <a href="https://modelcontextprotocol.io">Model Context Protocol</a>. Works with Claude Code, Claude Desktop, Cursor, and Windsurf.</p>
 
+    <h3>Setup</h3>
+    <pre><code><span class="comment"># Claude Code — one command</span>
+<span class="cmd">claude mcp add ai-scanner npx ai-scanner-mcp</span></code></pre>
+
+    <p>For Claude Desktop, Cursor, or Windsurf — add to your MCP config file:</p>
+    <pre><code>{
+  <span class="param">"mcpServers"</span>: {
+    <span class="param">"ai-scanner"</span>: {
+      <span class="param">"command"</span>: <span class="string">"npx"</span>,
+      <span class="param">"args"</span>: [<span class="string">"ai-scanner-mcp"</span>]
+    }
+  }
+}</code></pre>
+
+    <h3 id="mcp-tools">Tools</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>scan_directory</code></td><td>Full scan — LLM SDKs, AI frameworks, exposed tokens, and hardcoded secrets</td></tr>
+        <tr><td><code>check_secrets</code></td><td>Security check — pass/fail for exposed credentials only</td></tr>
+        <tr><td><code>ai_inventory</code></td><td>AI stack overview — which SDKs, frameworks, models are used</td></tr>
+      </tbody>
+    </table>
+
+    <p>Once connected, ask your AI agent things like:</p>
+    <div class="callout callout-info"><div class="callout-title">Example prompts</div><p><em>"Scan this project for any exposed API keys"</em> · <em>"Check if there are any hardcoded secrets before I commit"</em> · <em>"What AI frameworks does this codebase use?"</em></p></div>
+
+    <p>See <a href="https://github.com/Aakashbhardwaj27/ai-scanner-mcp">ai-scanner-mcp</a> for full documentation.</p>
+
+    <hr>
+
+    <h2 id="examples">Examples</h2>
     <h3 id="scan-github-repo">Scan a GitHub Repo</h3>
     <p>Clone any public repo and scan it in one command:</p>
     <pre><code><span class="cmd">git clone --depth 1 https://github.com/user/repo /tmp/repo</span>
 <span class="cmd">npx ai-scanner /tmp/repo</span>
 <span class="cmd">rm -rf /tmp/repo</span></code></pre>
-
     <p>Or use the included helper scripts:</p>
     <pre><code><span class="comment"># Shell — clones, scans, cleans up automatically</span>
 <span class="cmd">./examples/scan-github-repo.sh https://github.com/langchain-ai/langchainjs</span>
@@ -620,7 +366,6 @@
 <span class="cmd">node examples/scan-github-repo.js https://github.com/langchain-ai/langchainjs</span></code></pre>
 
     <h3 id="batch-scan">Batch Scan Multiple Repos</h3>
-    <p>Audit multiple repos at once and get a summary table:</p>
     <pre><code><span class="comment"># Edit the REPOS array in the script, then run:</span>
 <span class="cmd">node examples/scan-multiple-repos.js</span>
 
@@ -630,7 +375,6 @@
 <span class="comment">#   ✅ my-lib           0 findings   0 critical  0 SDKs  0 frameworks</span></code></pre>
 
     <h3 id="use-as-library">Use as a Library</h3>
-    <p>Import the scanner in your own Node.js code:</p>
     <pre><code><span class="keyword">const</span> { Scanner } = <span class="func">require</span>(<span class="string">'ai-scanner'</span>);
 
 <span class="keyword">const</span> scanner = <span class="keyword">new</span> <span class="func">Scanner</span>({ rootDir: <span class="string">'./my-project'</span> });
@@ -639,13 +383,11 @@
 <span class="comment">// Access structured results</span>
 console.<span class="func">log</span>(result.stats.criticalFindings);
 console.<span class="func">log</span>(result.findings.<span class="func">filter</span>(f => f.type === <span class="string">'token'</span>));</code></pre>
-
     <div class="callout callout-info"><div class="callout-title">More examples</div><p>See the <a href="https://github.com/Aakashbhardwaj27/ai-scanner/tree/main/examples">examples/</a> directory for pre-commit hooks, GitHub Actions workflows, and more.</p></div>
 
     <hr>
 
     <h2 id="ci-cd">CI/CD Integration</h2>
-
     <h3 id="github-actions">GitHub Actions</h3>
     <pre><code><span class="comment"># .github/workflows/ai-scan.yml</span>
 <span class="param">name:</span> <span class="string">AI Security Scan</span>
@@ -655,35 +397,25 @@ console.<span class="func">log</span>(result.findings.<span class="func">filter<
     <span class="param">runs-on:</span> <span class="string">ubuntu-latest</span>
     <span class="param">steps:</span>
       - <span class="param">uses:</span> <span class="string">actions/checkout@v4</span>
-      - <span class="param">name:</span> <span class="string">Scan for exposed AI tokens</span>
+      - <span class="param">name:</span> <span class="string">Scan for exposed tokens &amp; secrets</span>
         <span class="param">run:</span> <span class="string">npx ai-scanner --tokens-only --exit-code</span></code></pre>
 
     <h3 id="pre-commit">Pre-commit Hook</h3>
     <pre><code><span class="comment"># .husky/pre-commit</span>
 <span class="cmd">npx ai-scanner --tokens-only --exit-code</span></code></pre>
-
     <div class="callout callout-info"><div class="callout-title">Exit codes</div><p>With <code>--exit-code</code>, the tool returns <strong>0</strong> if clean, <strong>1</strong> if critical/high findings are detected — perfect for CI gates.</p></div>
 
     <hr>
 
     <h2 id="about">About</h2>
     <div class="grid" style="grid-template-columns: 1fr 1fr;">
-      <div class="card">
-        <h3>Contributing</h3>
-        <p>Contributions welcome — especially new detection patterns. See the guide for the pattern format.</p>
-        <a href="https://github.com/Aakashbhardwaj27/ai-scanner/blob/main/CONTRIBUTING.md" class="card-link">Contributing Guide →</a>
-      </div>
-      <div class="card">
-        <h3>License</h3>
-        <p>MIT License. Free to use in personal and commercial projects.</p>
-        <a href="https://github.com/Aakashbhardwaj27/ai-scanner/blob/main/LICENSE" class="card-link">View License →</a>
-      </div>
+      <div class="card"><h3>Contributing</h3><p>Contributions welcome — especially new detection patterns.</p><a href="https://github.com/Aakashbhardwaj27/ai-scanner/blob/main/CONTRIBUTING.md" class="card-link">Contributing Guide →</a></div>
+      <div class="card"><h3>License</h3><p>MIT License. Free to use in personal and commercial projects.</p><a href="https://github.com/Aakashbhardwaj27/ai-scanner/blob/main/LICENSE" class="card-link">View License →</a></div>
     </div>
     <p style="margin-top:1.5rem;">Built by <a href="https://github.com/Aakashbhardwaj27">Aakash Bhardwaj</a>.</p>
 
   </main>
 
-  <!-- TOC -->
   <aside class="toc">
     <div class="toc-label">On this page</div>
     <a href="#installation">Installation</a>
@@ -691,40 +423,35 @@ console.<span class="func">log</span>(result.findings.<span class="func">filter<
     <a href="#usage">CLI Options</a>
     <a href="#smart-filtering">Smart Filtering</a>
     <a href="#detection">Detection Coverage</a>
+    <a href="#generic-secrets">Generic Secrets</a>
     <a href="#severity-levels">Severity Levels</a>
+    <a href="#mcp">MCP Server</a>
     <a href="#examples">Examples</a>
     <a href="#ci-cd">CI/CD Integration</a>
     <a href="#about">About</a>
   </aside>
-
 </div>
 
 <footer class="footer">
-  <a href="https://github.com/Aakashbhardwaj27/ai-scanner">ai-scanner</a> · MIT License · Built by <a href="https://github.com/Aakashbhardwaj27">Aakash Bhardwaj</a>
+  <a href="https://github.com/Aakashbhardwaj27/ai-scanner">ai-scanner</a> · <a href="https://www.npmjs.com/package/ai-scanner">npm</a> · <a href="https://github.com/Aakashbhardwaj27/ai-scanner-mcp">MCP Server</a> · MIT License · Built by <a href="https://github.com/Aakashbhardwaj27">Aakash Bhardwaj</a>
 </footer>
 
 <script>
 (function() {
   var btn = document.getElementById('themeBtn');
   var saved = localStorage.getItem('theme');
-
-  // Set initial button icon state
   if (saved === 'light') btn.setAttribute('data-mode', 'light');
   else if (saved === 'dark') btn.setAttribute('data-mode', 'dark');
   else btn.setAttribute('data-mode', 'system');
 })();
-
 function cycleTheme() {
   var btn = document.getElementById('themeBtn');
   var current = btn.getAttribute('data-mode');
   var next;
-
   if (current === 'system') next = 'light';
   else if (current === 'light') next = 'dark';
   else next = 'system';
-
   btn.setAttribute('data-mode', next);
-
   if (next === 'system') {
     localStorage.removeItem('theme');
     var sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -734,14 +461,10 @@ function cycleTheme() {
     document.documentElement.setAttribute('data-theme', next);
   }
 }
-
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
   var saved = localStorage.getItem('theme');
-  if (!saved) {
-    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-  }
+  if (!saved) { document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light'); }
 });
 </script>
-
 </body>
 </html>
